@@ -34,6 +34,6 @@ func (c *RQLiteConn) Begin() (driver.Tx, error) {
 	return nil, nil
 }
 
-func (c *RQLiteConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error)
+func (c *RQLiteConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
 	return nil, nil
 }
