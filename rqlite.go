@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"net/url"
+	"strings"
 )
 
 func init() {
@@ -17,17 +18,24 @@ type RQLiteDriver struct {
 
 // Open opens database and returns a new connection.
 func (d *RQLiteDriver) Open(p string) (driver.Conn, error) {
-	u, err :=  url.Parse(p)
+	u, err :=  url.Parse(strings.TrimRight(p, "/"))
 	if err != nil {
 		return nil, err
 	}
+
+	node := NewNode(u)
+	_, err = node.Status()
+	if err != nil {
+		return nil, err
+	}
+
 	return &RQLiteConn{
-		url: u,
+		node: node,
 	}, nil
 }
 
 type RQLiteConn struct {
-	url *url.URL
+	node *Node
 }
 
 func (c *RQLiteConn) Prepare(query string) (driver.Stmt, error) {

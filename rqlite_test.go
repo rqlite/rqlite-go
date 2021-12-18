@@ -2,7 +2,10 @@ package rqlite
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
+	"net/http"
+	"net/http/httptest"
 )
 
 func Test_Init(t *testing.T) {
@@ -11,14 +14,34 @@ func Test_Init(t *testing.T) {
 	}
 }
 
-func Test_BadURL(t *testing.T) {
-	db, err := sql.Open("rqlite", "xxhkajh ere")
+func Test_SimpleOpen(t *testing.T) {
+	_, err := sql.Open("rqlite", "http://example.com")
 	if err != nil {
-		t.Fatal("Invalid rqlite URL opened OK")
+		t.Fatal("failed to perform simple DB Open")
 	}
+}
 
-	err = db.Ping()
-	if err == nil {
-		t.Fatal("expected error from Open or Ping")
+func Test_SimplePingFail(t *testing.T) {
+	db, err := sql.Open("rqlite", "http://example.com")
+	if err != nil {
+		t.Fatal("failed to perform simple DB Open")
+	}
+	if db.Ping() == nil {
+		t.Fatal("successfully pinged non-existent DB")
+	}
+}
+
+func Test_SimplePingOK(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "OK")
+	}))
+	defer ts.Close()
+
+	db, err := sql.Open("rqlite", ts.URL)
+	if err != nil {
+		t.Fatal("failed to perform simple DB Open")
+	}
+	if db.Ping() != nil {
+		t.Fatal("failed to ping mock DB")
 	}
 }
